@@ -1,0 +1,83 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'android-aspectjx' //引用aspectjx插件
+apply plugin: 'com.xuexiang.xaop'
+
+android {
+    compileSdkVersion build_versions.target_sdk
+
+    defaultConfig {
+        applicationId "com.xuexiang.xftpclient"
+        minSdkVersion 19
+        targetSdkVersion build_versions.target_sdk
+        versionCode 1
+        versionName "1.0"
+
+    }
+    if (isNeedPackage.toBoolean()) {
+        signingConfigs {
+            release {
+                storeFile file(app_release.storeFile)
+                storePassword app_release.storePassword
+                keyAlias app_release.keyAlias
+                keyPassword app_release.keyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (isNeedPackage.toBoolean()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    if (isNeedPackage.toBoolean()) {
+        applicationVariants.all { variant ->
+            variant.outputs.all {
+                if (variant.buildType.name.equals('release')) {
+                    outputFileName = "xftpclient_${defaultConfig.versionName}.apk"
+                }
+            }
+        }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation deps.support.app_compat
+    implementation deps.support.recyclerview
+    implementation deps.support.design
+    //XUI框架
+    implementation 'com.github.xuexiangjys:XUI:1.0.1'
+    implementation 'com.github.bumptech.glide:glide:4.8.0'
+    //工具类
+    implementation 'com.github.xuexiangjys.XUtil:xutil-core:1.1.5'
+    implementation 'com.github.xuexiangjys.XUtil:xutil-sub:1.1.5'
+    //切片
+    implementation 'com.github.xuexiangjys.XAOP:xaop-runtime:1.0.1'
+    //XPage页面框架
+    implementation 'com.github.xuexiangjys.XPage:xpage-lib:2.2.4'
+    kapt 'com.github.xuexiangjys.XPage:xpage-compiler:2.2.4'
+    //ButterKnife
+    implementation deps.butterknife.runtime
+    kapt deps.butterknife.compiler
+    //如果开启了内存泄漏监测leak,就需要加上这个依赖
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
+    testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
+
+    //FTP客户端
+    implementation project(':ftp_lib')
+}
